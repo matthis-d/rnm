@@ -16,9 +16,8 @@ fn main() -> std::io::Result<()> {
             if let Ok(file_type) = entry.file_type() {
                 if file_type.is_file() {
                     if let Some(pathname) = entry.path().to_str() {
-                        if pathname.contains(&args.from) {
-                            fs::rename(pathname, pathname.replace(&args.from, &args.to))?;
-                        }
+                        let output = rnm::replace_name(&pathname, &args.from, &args.to);
+                        fs::rename(pathname, output)?;
                     }
                 }
             }
