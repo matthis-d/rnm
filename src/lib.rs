@@ -1,8 +1,11 @@
+use log::info;
 use regex::Regex;
 
 pub fn replace_name(name: &str, from: &str, to: &str) -> String {
     let re = Regex::new(from).unwrap();
-    format!("{}", re.replace_all(name, to))
+    let output = re.replace_all(name, to);
+    info!("Replacing {} into {}", name, output);
+    format!("{}", output)
 }
 
 #[cfg(test)]
