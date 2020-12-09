@@ -1,5 +1,7 @@
 # rnm
 
+[![Build Status](https://travis-ci.com/matthis-d/rnm.svg?branch=main)](https://travis-ci.com/matthis-d/rnm)
+
 A command line utility to rename files
 
 ## How to run
