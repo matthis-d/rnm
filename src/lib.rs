@@ -1,11 +1,38 @@
-use log::info;
+use log::{info, warn};
 use regex::Regex;
+use std::path::PathBuf;
 
 pub fn replace_name(name: &str, from: &str, to: &str) -> String {
     let re = Regex::new(from).unwrap();
-    let output = re.replace_all(name, to);
-    info!("Replacing {} into {}", name, output);
-    format!("{}", output)
+
+    let filepath = PathBuf::from(name);
+    let parent = filepath.parent().unwrap();
+    let filename = filepath.file_name();
+
+    if None == filename {
+        warn!("Path is not a filename");
+        return String::from(name);
+    }
+
+    let filename = filename.unwrap().to_str();
+
+    if None == filename {
+        warn!("Could not handle file {}", name);
+        return String::from(name);
+    }
+
+    let filename = filename.unwrap();
+
+    if re.is_match(filename) {
+        let renamed_file = re.replace_all(filename, to);
+        let renamed_file = format!("{}", renamed_file);
+        let output = parent.join(renamed_file);
+        let output = output.to_str().unwrap();
+        info!("Replacing {} into {}", name, output);
+        return String::from(output);
+    }
+
+    String::from(name)
 }
 
 #[cfg(test)]
@@ -40,5 +67,11 @@ mod tests {
     fn with_simple_number() {
         let output = replace_name("1", "^(\\d+)$", "$1.dcm");
         assert_eq!(output, "1.dcm");
+    }
+
+    #[test]
+    fn with_pathname() {
+        let output = replace_name("./path.txt", "^path", "out");
+        assert_eq!(output, "./out.txt");
     }
 }

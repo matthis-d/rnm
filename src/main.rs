@@ -22,7 +22,9 @@ fn main() -> std::io::Result<()> {
     for entry in get_file_entries(".") {
         if let Some(pathname) = entry.path().to_str() {
             let output = rnm::replace_name(&pathname, &args.from, &args.to);
-            fs::rename(pathname, output)?;
+            if output != pathname {
+                fs::rename(pathname, output)?;
+            }
         }
     }
     Ok(())

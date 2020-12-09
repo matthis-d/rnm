@@ -10,6 +10,6 @@ rnm <string_to_change> <what_use_instead>
 
 ## Roadmap
 
-- [ ] Basic usage
+- [x] Basic usage
 - [ ] Recursive mode
-- [ ] Use regex
+- [x] Use regex
