@@ -1,8 +1,16 @@
 use log::{info, warn};
 use regex::Regex;
+use std::fs;
 use std::path::PathBuf;
+use structopt::StructOpt;
 
-pub fn replace_name(name: &str, from: &str, to: &str) -> String {
+#[derive(StructOpt)]
+pub struct CliArguments {
+    from: String,
+    to: String,
+}
+
+fn replace_name(name: &str, from: &str, to: &str) -> String {
     let re = Regex::new(from).unwrap();
 
     let filepath = PathBuf::from(name);
@@ -33,6 +41,33 @@ pub fn replace_name(name: &str, from: &str, to: &str) -> String {
     }
 
     String::from(name)
+}
+
+fn get_file_entries(pathname: &str) -> Vec<fs::DirEntry> {
+    fs::read_dir(pathname)
+        .unwrap()
+        // Keep readable entries
+        .filter_map(Result::ok)
+        // Keep entries with a redable file type
+        .filter(|entry| Result::is_ok(&entry.file_type()))
+        // Keep entries of file type
+        .filter(|entry| entry.file_type().unwrap().is_file())
+        // Return an iterable
+        .collect()
+}
+
+pub fn rename_files(path: &str, args: &CliArguments) -> std::io::Result<()> {
+    info!("from {} into {}", args.from, args.to);
+
+    for entry in get_file_entries(path) {
+        if let Some(pathname) = entry.path().to_str() {
+            let output = replace_name(&pathname, &args.from, &args.to);
+            if output != pathname {
+                fs::rename(pathname, output)?;
+            }
+        }
+    }
+    Ok(())
 }
 
 #[cfg(test)]
@@ -73,5 +108,15 @@ mod tests {
     fn with_pathname() {
         let output = replace_name("./path.txt", "^path", "out");
         assert_eq!(output, "./out.txt");
+    }
+
+    #[test]
+    fn with_two_matches() {
+        let output = replace_name(
+            "test-something-42",
+            "(\\w+)-something-(\\d+)",
+            "$1-check-$2",
+        );
+        assert_eq!(output, "test-check-42");
     }
 }
