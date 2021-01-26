@@ -1,18 +1,25 @@
 [package]
 name = "rnm"
 version = "0.1.0"
-authors = ["Matthis Duclos <matthis.duclos@gmail.com>"]
 edition = "2018"
+authors = ["Matthis Duclos <matthis.duclos@gmail.com>"]
+license = "MIT"
+description = "A command line utility to rename files"
+readme = "README.md"
+homepage = "https://github.com/matthis-d/rnm"
+repository = "https://github.com/matthis-d/rnm"
+keywords = ["cli", "rename", "files"]
+categories = ["command-line-utilities"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-structopt = "0.3.20"
+structopt = "0.3.21"
 regex = "1.4.2"
 log = "0.4.11"
 env_logger = "0.8.2"
 
 [dev-dependencies]
-assert_cmd = "1.0.1"
+assert_cmd = "1.0.2"
 predicates = "1.0.5"
 tempfile = "3"
