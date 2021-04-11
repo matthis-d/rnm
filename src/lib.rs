@@ -1,12 +1,18 @@
+use argh::FromArgs;
 use log::info;
 use std::fs;
-use structopt::StructOpt;
 
 mod utils;
 
-#[derive(StructOpt)]
+/// Replaces filenames using regexes
+#[derive(FromArgs)]
 pub struct CliArguments {
+    /// regex of filenames to replace
+    #[argh(positional)]
     from: String,
+
+    /// replacement to apply with $1, $2, etc. as values catched in regex.
+    #[argh(positional)]
     to: String,
 }
 

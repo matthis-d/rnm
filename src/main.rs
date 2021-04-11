@@ -1,6 +1,6 @@
 use env_logger::Builder;
 use log::LevelFilter;
-use structopt::StructOpt;
+use rnm::CliArguments;
 
 fn main() -> std::io::Result<()> {
     Builder::from_default_env()
@@ -9,7 +9,7 @@ fn main() -> std::io::Result<()> {
         .filter(None, LevelFilter::Info)
         .init();
 
-    let args = rnm::CliArguments::from_args();
+    let args: CliArguments = argh::from_env();
 
     rnm::rename_files(".", &args)
 }
