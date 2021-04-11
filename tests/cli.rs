@@ -94,3 +94,37 @@ fn using_numbers_regex_only() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[test]
+fn with_several_parts() -> Result<(), Box<dyn std::error::Error>> {
+    let dir = tempfile::tempdir()?;
+    let file_path = dir
+        .path()
+        .join("my-favourite-serie-s01e01[SOME weird things]1080x720.avi");
+
+    let file_path2 = dir
+        .path()
+        .join("my-favourite-serie-s01e02[SOME weird things]1080x720.avi");
+
+    let file = File::create(&file_path)?;
+    let file2 = File::create(&file_path2)?;
+
+    let mut cmd = Command::cargo_bin("rnm")?;
+    cmd.current_dir(dir.path())
+        .arg("my-favourite-serie-s01e(\\d+).*\\.avi")
+        .arg("My favourite serie S01E$1.avi");
+    cmd.assert().success();
+
+    let expected_file_path = dir.path().join("My favourite serie S01E01.avi");
+    let expected_file_path2 = dir.path().join("My favourite serie S01E02.avi");
+    assert!(predicate::path::missing().eval(&file_path));
+    assert!(predicate::path::missing().eval(&file_path2));
+    assert!(predicate::path::exists().eval(&expected_file_path));
+    assert!(predicate::path::exists().eval(&expected_file_path2));
+
+    drop(file);
+    drop(file2);
+    dir.close()?;
+
+    Ok(())
+}
