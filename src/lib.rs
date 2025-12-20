@@ -1,5 +1,6 @@
 use argh::FromArgs;
-use log::info;
+use log::{info, warn};
+use regex::Regex;
 use std::fs;
 
 mod utils;
@@ -19,9 +20,18 @@ pub struct CliArguments {
 }
 
 pub fn rename_files(path: &str, args: &CliArguments) -> std::io::Result<()> {
-    use log::warn;
-
     info!("from {} into {}", args.from, args.to);
+
+    // Compile regex once before processing files for better performance
+    let re = match Regex::new(&args.from) {
+        Ok(regex) => regex,
+        Err(e) => {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                format!("Invalid regex pattern '{}': {}", args.from, e),
+            ));
+        }
+    };
 
     // Handle error from get_file_entries (e.g., path doesn't exist)
     let entries = match utils::files::get_file_entries(path) {
@@ -40,9 +50,8 @@ pub fn rename_files(path: &str, args: &CliArguments) -> std::io::Result<()> {
         // IMPROVEMENT: Using to_str() loses information about non-UTF8 paths
         // Consider using Path/PathBuf operations directly instead
         if let Some(pathname) = entry.path().to_str() {
-            // IMPROVEMENT: Regex is compiled on every call to replace_name
-            // Should compile once and reuse (see string.rs comments)
-            match utils::string::replace_name(&pathname, &args.from, &args.to) {
+            // Regex is now compiled once and reused for all files
+            match utils::string::replace_name(&pathname, &re, &args.to) {
                 Ok(output) => {
                     if output != pathname {
                         // IMPROVEMENT: Consider checking if output file already exists before renaming

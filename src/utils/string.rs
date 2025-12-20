@@ -2,16 +2,15 @@ use log::{info, warn};
 use regex::Regex;
 use std::path::PathBuf;
 
-// IMPROVEMENT: Regex compilation is expensive - this function compiles the regex on every call
-// Should accept a pre-compiled Regex instead, or compile once at a higher level
+/// Replaces a filename using a pre-compiled regex pattern.
+///
+/// This function accepts a pre-compiled `Regex` to avoid recompiling the pattern
+/// on every call, which improves performance when processing multiple files.
 pub fn replace_name(
     name: &str,
-    from: &str,
+    re: &Regex,
     to: &str,
 ) -> Result<String, Box<dyn std::error::Error>> {
-    // Compile regex and handle invalid regex patterns
-    let re = Regex::new(from).map_err(|e| format!("Invalid regex pattern '{}': {}", from, e))?;
-
     let filepath = PathBuf::from(name);
 
     // Handle case where path has no parent (e.g., root "/")
@@ -72,55 +71,50 @@ mod tests {
 
     #[test]
     fn with_simple_strings() {
-        let output = replace_name("foobar", "bar", "buzz").unwrap();
+        let re = Regex::new("bar").unwrap();
+        let output = replace_name("foobar", &re, "buzz").unwrap();
         assert_eq!(output, "foobuzz");
     }
 
     #[test]
     fn without_match() {
-        let output = replace_name("foobar", "buzz", "blob").unwrap();
+        let re = Regex::new("buzz").unwrap();
+        let output = replace_name("foobar", &re, "blob").unwrap();
         assert_eq!(output, "foobar");
     }
 
     #[test]
     fn with_simple_regex() {
-        let output = replace_name("number 16", "(\\d+)", "nope").unwrap();
+        let re = Regex::new("(\\d+)").unwrap();
+        let output = replace_name("number 16", &re, "nope").unwrap();
         assert_eq!(output, "number nope");
     }
 
     #[test]
     fn with_matching_replacement() {
-        let output = replace_name("number 16", "number (\\d+)", "$1 number").unwrap();
+        let re = Regex::new("number (\\d+)").unwrap();
+        let output = replace_name("number 16", &re, "$1 number").unwrap();
         assert_eq!(output, "16 number");
     }
 
     #[test]
     fn with_simple_number() {
-        let output = replace_name("1", "^(\\d+)$", "$1.dcm").unwrap();
+        let re = Regex::new("^(\\d+)$").unwrap();
+        let output = replace_name("1", &re, "$1.dcm").unwrap();
         assert_eq!(output, "1.dcm");
     }
 
     #[test]
     fn with_pathname() {
-        let output = replace_name("./path.txt", "^path", "out").unwrap();
+        let re = Regex::new("^path").unwrap();
+        let output = replace_name("./path.txt", &re, "out").unwrap();
         assert_eq!(output, "./out.txt");
     }
 
     #[test]
     fn with_two_matches() {
-        let output = replace_name(
-            "test-something-42",
-            "(\\w+)-something-(\\d+)",
-            "$1-check-$2",
-        )
-        .unwrap();
+        let re = Regex::new("(\\w+)-something-(\\d+)").unwrap();
+        let output = replace_name("test-something-42", &re, "$1-check-$2").unwrap();
         assert_eq!(output, "test-check-42");
-    }
-
-    #[test]
-    fn with_invalid_regex() {
-        let result = replace_name("test", "[invalid", "replacement");
-        assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("Invalid regex"));
     }
 }
