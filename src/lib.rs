@@ -47,28 +47,30 @@ pub fn rename_files(path: &str, args: &CliArguments) -> std::io::Result<()> {
     // IMPROVEMENT: get_file_entries returns Vec which loads all entries into memory
     // Consider returning an iterator instead for better memory efficiency
     for entry in entries {
-        // IMPROVEMENT: Using to_str() loses information about non-UTF8 paths
-        // Consider using Path/PathBuf operations directly instead
-        if let Some(pathname) = entry.path().to_str() {
-            // Regex is now compiled once and reused for all files
-            match utils::string::replace_name(&pathname, &re, &args.to) {
-                Ok(output) => {
-                    if output != pathname {
-                        // IMPROVEMENT: Consider checking if output file already exists before renaming
-                        // Handle rename errors gracefully - log and continue
-                        if let Err(e) = fs::rename(pathname, &output) {
-                            warn!("Failed to rename '{}' to '{}': {}", pathname, output, e);
-                        }
+        let entry_path = entry.path();
+
+        // Work with Path directly - handles both UTF-8 and non-UTF8 paths
+        // Use lossy conversion for display/logging purposes
+        match utils::string::replace_name(&entry_path, &re, &args.to) {
+            Ok(output_path) => {
+                // Compare paths directly instead of strings
+                if entry_path != output_path {
+                    // IMPROVEMENT: Consider checking if output file already exists before renaming
+                    // Handle rename errors gracefully - log and continue
+                    if let Err(e) = fs::rename(&entry_path, &output_path) {
+                        let entry_display = entry_path.to_string_lossy();
+                        let output_display = output_path.to_string_lossy();
+                        warn!(
+                            "Failed to rename '{}' to '{}': {}",
+                            entry_display, output_display, e
+                        );
                     }
                 }
-                Err(e) => {
-                    warn!("Failed to process file '{}': {}", pathname, e);
-                }
             }
-        } else {
-            // IMPROVEMENT: Files with non-UTF8 paths are silently skipped
-            // Log a warning for non-UTF8 paths
-            warn!("Skipping file with non-UTF8 path: {:?}", entry.path());
+            Err(e) => {
+                let entry_display = entry_path.to_string_lossy();
+                warn!("Failed to process file '{}': {}", entry_display, e);
+            }
         }
     }
     Ok(())
