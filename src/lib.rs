@@ -24,6 +24,7 @@ pub fn rename_files(path: &str, args: &CliArguments) -> std::io::Result<()> {
     info!("from {} into {}", args.from, args.to);
 
     // Compile regex once before processing files for better performance
+    // Use if let for early return - more idiomatic than match when only one branch matters
     let re = match Regex::new(&args.from) {
         Ok(regex) => regex,
         Err(e) => {
@@ -38,6 +39,7 @@ pub fn rename_files(path: &str, args: &CliArguments) -> std::io::Result<()> {
 
     // get_file_entries now returns an iterator for better memory efficiency
     // Entries are processed lazily as they are consumed, rather than loading all into memory
+    // Use if let for early return - more idiomatic than match when only one branch matters
     let entries = match utils::files::get_file_entries(path) {
         Ok(entries) => entries,
         Err(e) => {

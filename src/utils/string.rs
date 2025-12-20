@@ -15,21 +15,20 @@ pub fn replace_name(
     to: &str,
 ) -> Result<PathBuf, Box<dyn std::error::Error>> {
     // Handle case where path has no parent (e.g., root "/")
-    let parent = match path.parent() {
-        Some(p) => p,
-        None => {
-            warn!("Path has no parent directory: {:?}", path);
-            return Ok(path.to_path_buf());
-        }
+    // Use if let for early return - more idiomatic than match when only one branch matters
+    let parent = if let Some(p) = path.parent() {
+        p
+    } else {
+        warn!("Path has no parent directory: {:?}", path);
+        return Ok(path.to_path_buf());
     };
 
-    // Use pattern matching instead of comparing to None
-    let filename = match path.file_name() {
-        Some(f) => f,
-        None => {
-            warn!("Path is not a filename: {:?}", path);
-            return Ok(path.to_path_buf());
-        }
+    // Use if let for early return - more idiomatic than match when only one branch matters
+    let filename = if let Some(f) = path.file_name() {
+        f
+    } else {
+        warn!("Path is not a filename: {:?}", path);
+        return Ok(path.to_path_buf());
     };
 
     // Use lossy conversion for non-UTF8 filenames
