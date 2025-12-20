@@ -2,6 +2,7 @@ use argh::FromArgs;
 use log::{info, warn};
 use regex::Regex;
 use std::fs;
+use std::path::Path;
 
 mod utils;
 
@@ -33,19 +34,20 @@ pub fn rename_files(path: &str, args: &CliArguments) -> std::io::Result<()> {
         }
     };
 
-    // Handle error from get_file_entries (e.g., path doesn't exist)
+    let path = Path::new(path);
+
+    // get_file_entries now returns an iterator for better memory efficiency
+    // Entries are processed lazily as they are consumed, rather than loading all into memory
     let entries = match utils::files::get_file_entries(path) {
         Ok(entries) => entries,
         Err(e) => {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::Other,
-                format!("Failed to read directory '{}': {}", path, e),
+                format!("Failed to read directory '{}': {}", path.display(), e),
             ));
         }
     };
 
-    // IMPROVEMENT: get_file_entries returns Vec which loads all entries into memory
-    // Consider returning an iterator instead for better memory efficiency
     for entry in entries {
         let entry_path = entry.path();
 
