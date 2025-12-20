@@ -1,7 +1,7 @@
 [package]
 name = "rnm"
 version = "0.1.0"
-edition = "2018"
+edition = "2018" # IMPROVEMENT: Consider upgrading to edition = "2021" for latest Rust features
 authors = ["Matthis Duclos <matthis.duclos@gmail.com>"]
 license = "MIT"
 description = "A command line utility to rename files"
@@ -14,12 +14,16 @@ categories = ["command-line-utilities"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+# IMPROVEMENT: All dependencies are quite old (from 2020-2021)
+# Consider updating to latest versions for bug fixes and security updates
+# Current latest versions (as of 2024): regex ~1.10, log ~0.4, env_logger ~0.11, argh ~0.1.12
 regex = "1.4.2"
 log = "0.4.11"
 env_logger = "0.8.2"
 argh = "0.1.4"
 
 [dev-dependencies]
+# IMPROVEMENT: Consider updating dev dependencies as well
 assert_cmd = "1.0.2"
 predicates = "1.0.5"
 tempfile = "3"

@@ -11,5 +11,8 @@ fn main() -> std::io::Result<()> {
 
     let args: CliArguments = argh::from_env();
 
+    // IMPROVEMENT: Consider making the path configurable via CLI argument
+    // IMPROVEMENT: Consider adding a --dry-run flag to preview changes before applying
+    // IMPROVEMENT: Consider better error messages (e.g., if path doesn't exist)
     rnm::rename_files(".", &args)
 }
